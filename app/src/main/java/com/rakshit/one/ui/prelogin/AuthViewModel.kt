@@ -6,6 +6,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.test.papers.config.ConstantsFirestore
@@ -36,34 +37,10 @@ class AuthViewModel : KotlinBaseViewModel() {
                     updateProfile(name, user)
 
                 } else {
-                    println("EXCEPTION >>>> ${task.exception?.localizedMessage}")
+                    task.exception?.stackTrace
                     successRegister.postValue(task.exception?.localizedMessage)
                 }
             }
-    }
-
-    private fun updateProfile(name: String, user: FirebaseUser) {
-        val map = hashMapOf(
-            ConstantsFirestore.NAME to name,
-            ConstantsFirestore.IMAGE to user.photoUrl,
-            ConstantsFirestore.EMAIL to user.email,
-            ConstantsFirestore.UID to user.uid,
-        )
-
-        Firebase.firestore.collection("users").document(user.uid).set(map)
-            .addOnSuccessListener { documentReference ->
-//                Log.d("FIRESTORE >>", "DocumentSnapshot added with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-//                Log.w("FIRESTORE >>", "Error adding document", e)
-            }
-
-        val profileUpdates = UserProfileChangeRequest.Builder()
-            .setDisplayName(name)
-//                        .setPhotoUri(Uri.parse("https://example.com/jane-q-user/profile.jpg"))
-            .build()
-
-        user.updateProfile(profileUpdates)
     }
 
     fun login(email: String, password: String, activity: Activity) {
@@ -80,11 +57,34 @@ class AuthViewModel : KotlinBaseViewModel() {
 
                     successLogin.postValue("")
 
+                    updateProfile(user.displayName.toString(), user)
                 } else {
-                    println("EXCEPTION >>>> ${task.exception?.localizedMessage}")
+                    task.exception?.stackTrace
                     successLogin.postValue(task.exception?.localizedMessage)
                 }
             }
+    }
+
+    private fun updateProfile(name: String, user: FirebaseUser) {
+        val map = hashMapOf(
+            ConstantsFirestore.NAME to name,
+            ConstantsFirestore.IMAGE to user.photoUrl,
+            ConstantsFirestore.EMAIL to user.email,
+            ConstantsFirestore.UID to user.uid,
+            ConstantsFirestore.IS_ONLINE to false,
+            ConstantsFirestore.LAST_ONLINE to FieldValue.serverTimestamp(),
+        )
+
+        Firebase.firestore.collection("users").document(user.uid).update(map)
+            .addOnSuccessListener { documentReference ->
+                Log.d("Profile", "DocumentSnapshot added with ID: $documentReference")
+            }
+            .addOnFailureListener { e ->
+                Log.w("Profile", "Error adding document", e)
+            }
+
+        val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name).build()
+        user.updateProfile(profileUpdates)
     }
 
     fun checkForgotPassword(email: String) {

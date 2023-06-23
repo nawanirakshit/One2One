@@ -47,6 +47,14 @@ class DashboardViewModel : KotlinBaseViewModel() {
             }
     }
 
+    fun updateStatus(status: Boolean) {
+
+        val washingtonRef = Firebase.firestore.collection("users").document(Config.uid)
+        washingtonRef.update("is_online", status)
+            .addOnSuccessListener { Log.d("is_online", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("is_online", "Error updating document", e) }
+    }
+
 }
 
 data class Users(

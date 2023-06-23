@@ -18,6 +18,7 @@ import com.rakshit.one.R
 import com.rakshit.one.model.chatdata.Metadata
 import com.rakshit.one.model.chatdata.ReceiverData
 import com.rakshit.one.model.chatdata.ResponseAvailableChat
+import com.rakshit.one.ui.dashboard.DashboardViewModel
 import com.rakshit.one.ui.dashboard.chat.MyChatFragment
 import com.rakshit.one.ui.dashboard.find.FindUserFragment
 import com.test.papers.config.ConstantsFirestore
@@ -26,8 +27,11 @@ import com.test.papers.kotlin.KotlinBaseActivity
 import com.test.papers.kotlin.replaceFragment
 import com.test.papers.utils.extension.gone
 import com.test.papers.utils.extension.visible
+import org.koin.android.ext.android.inject
 
 class MainActivity : KotlinBaseActivity() {
+
+    private val viewModel: DashboardViewModel by inject()
 
     private val database by lazy { FirebaseDatabase.getInstance() }
 
@@ -61,6 +65,21 @@ class MainActivity : KotlinBaseActivity() {
         observeViews()
 
         getChatData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateStatus(true)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        updateStatus(false)
+    }
+
+    private fun updateStatus(status: Boolean) {
+        viewModel.updateStatus(status)
     }
 
     private fun getChatData() {

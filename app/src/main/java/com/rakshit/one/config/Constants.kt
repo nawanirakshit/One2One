@@ -8,6 +8,8 @@ object ConstantsFirestore {
     const val IMAGE = "image"
     const val EMAIL = "email"
     const val UID = "uid"
+    const val IS_ONLINE = "is_online"
+    const val LAST_ONLINE = "last_online"
 }
 
 fun getDeviceID(): String {

@@ -10,8 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -21,7 +23,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.rakshit.one.R
+import com.rakshit.one.model.chatdata.ReceiverData
 import com.rakshit.one.ui.dashboard.DashboardViewModel
+import com.rakshit.one.utils.extension.loadProfileImage
 import com.test.papers.config.CHAT_TYPE
 import com.test.papers.config.ChatConst
 import com.test.papers.config.ConstantsFirestore
@@ -31,8 +35,12 @@ import com.test.papers.config.IntentKey.REALTIME_CHAT
 import com.test.papers.config.MetadataConst
 import com.test.papers.config.RECEIVERDATA
 import com.test.papers.kotlin.KotlinBaseFragment
+import com.test.papers.utils.extension.gone
 import com.test.papers.utils.extension.showToast
+import com.test.papers.utils.extension.visible
+import de.hdodenhof.circleimageview.CircleImageView
 import org.koin.android.ext.android.inject
+
 
 class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
 
@@ -41,6 +49,9 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
     private val mMessage: AppCompatEditText by lazy { requireView().findViewById(R.id.et_message) }
     private val mNoBill: ConstraintLayout by lazy { requireView().findViewById(R.id.no_list_data) }
     private val mOpponentName: TextView by lazy { requireView().findViewById(R.id.toolbar_title) }
+    private val mStatus: TextView by lazy { requireView().findViewById(R.id.tv_status) }
+    private val mUserImage: CircleImageView by lazy { requireView().findViewById(R.id.user_image) }
+    private val mTyping: TextView by lazy { requireView().findViewById(R.id.toolbar_typing) }
 
     private val mRecycler: RecyclerView by lazy { requireView().findViewById(R.id.recycler_single_chat) }
     private lateinit var adapter: ChatListAdapter
@@ -75,24 +86,35 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
     }
 
     private fun getOpponentDetails() {
-        println("OPPONENT ID >>> $opponentId")
         val docRef = Firebase.firestore.collection(FIRESTORE_USERS).document(opponentId)
-        docRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-//                    Log.d(TAG, "DocumentSnapshot data: ${document.data}")
-
-                val name = document.data?.get(ConstantsFirestore.NAME)?.toString()
-                val image = document.data?.get(ConstantsFirestore.IMAGE)?.toString()
-
-                println("NAME >>>> $name")
-                println("image >>>> $image")
-
-                mOpponentName.text = name
+        docRef.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                return@addSnapshotListener
             }
-        }.addOnFailureListener { exception ->
-            println("EXCEPTION >>>>> ${exception.localizedMessage}")
-        }
+            if (snapshot != null && snapshot.exists()) {
 
+                if (snapshot.data?.get(ConstantsFirestore.NAME) != null) {
+                    val name = snapshot.data?.get(ConstantsFirestore.NAME)?.toString()
+                    mOpponentName.text = name
+                }
+
+                if (snapshot.data?.get(ConstantsFirestore.IS_ONLINE) != null) {
+                    val isOnline = snapshot.data?.get(ConstantsFirestore.IS_ONLINE) as Boolean
+                    if (isOnline) {
+                        mStatus.setBackgroundResource(R.drawable.bg_online);
+                    } else {
+                        mStatus.setBackgroundResource(R.drawable.bg_offline);
+                    }
+                }
+
+                if (snapshot.data?.get(ConstantsFirestore.IMAGE) != null) {
+                    val image = snapshot.data?.get(ConstantsFirestore.IMAGE)?.toString()
+                    if (image != null) {
+                        mUserImage.loadProfileImage(image, context = requireContext())
+                    }
+                }
+            }
+        }
     }
 
     private fun initViews() {
@@ -149,6 +171,16 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
         mRecycler.layoutManager = LinearLayoutManager(requireContext())
         mRecycler.adapter = adapter
 
+        mMessage.doOnTextChanged { text, start, before, count ->
+            val channelKey = database.reference.child(REALTIME_CHAT).child(key)
+
+            val typing = count > 0
+
+            val childUpdates = hashMapOf(
+                "/metadata/$type/is_typing" to typing,
+            )
+            channelKey.updateChildren(childUpdates as Map<String, Any>)
+        }
     }
 
     private fun sendMessage(opponentId: String, message: String, type: String) {
@@ -284,6 +316,61 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             "/metadata/unread_${Config.uid}" to 0,
         )
         channelKey.updateChildren(childUpdates as Map<String, Any>)
+
+        database.reference.child(REALTIME_CHAT).child(key).child("metadata").get()
+            .addOnSuccessListener {
+                Log.i("firebase", "Got value ${it.value}")
+
+                val gson = Gson()
+                val jsonElement = gson.toJsonTree(it.value)
+                val myMetadata: com.rakshit.one.model.chatdata.Metadata =
+                    gson.fromJson(jsonElement, com.rakshit.one.model.chatdata.Metadata::class.java)
+
+                type = if (myMetadata.receiverData.userId == Config.uid) {
+                    "senderData"
+                } else {
+                    "receiverData"
+                }
+
+                checkTyping()
+
+            }.addOnFailureListener {
+                Log.e("firebase", "Error getting data", it)
+            }
+
+
+    }
+
+    var type: String = "senderData"
+
+    private fun checkTyping() {
+        val childEventListener = object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
+            }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
+
+                val isTyping = dataSnapshot.value as Boolean
+                if (isTyping) {
+                    mTyping.visible()
+                } else mTyping.gone()
+
+            }
+
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+            }
+
+            override fun onChildMoved(dataSnapshot: DataSnapshot, previousChildName: String?) {
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+            }
+        }
+
+        val channelKey = database.reference.child(REALTIME_CHAT).child(key)
+
+        channelKey.child("metadata").child(type).addChildEventListener(childEventListener)
+
     }
 }
 

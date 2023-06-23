@@ -26,6 +26,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/tv_status"
+            app:layout_constraintBottom_toBottomOf="@+id/user_image"
+            app:layout_constraintEnd_toEndOf="@+id/user_image"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_offline" />
+
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/user_name"
             android:layout_width="wrap_content"
