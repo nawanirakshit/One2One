@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <!--
+        <ImageView
+            android:id="@+id/iv_perm_image"
+            android:layout_width="188dp"
+            android:layout_height="188dp"
+            />
+    -->
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/iv_perm_image"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="28dp"
+        app:lottie_autoPlay="true"
+        app:lottie_fileName="lottie_location_perm.json"
+        app:lottie_loop="true"
+        app:lottie_speed="1" />
+
+
+    <TextView
+        android:id="@+id/tv_perm_title"
+        android:layout_width="319dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:gravity="center_horizontal"
+        android:lineSpacingExtra="3sp"
+        android:text="@string/allow_notification"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/tv_perm_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="28dp"
+        android:gravity="center_horizontal"
+        android:lineSpacingExtra="3sp"
+        android:text="@string/perm_notification_desc"
+        android:textAlignment="center"
+        android:textColor="#19202E"
+        android:textSize="14sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_perm_allow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/btn_bg_secondry"
+        android:text="@string/allow"
+        android:textColor="#FCFDFF"
+        android:textSize="16sp" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">One 2 One</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="perm_location_desc">Location access will help Nirmata track your live location. In order to use the app, its mandatory \nto allow location access!</string>
+    <string name="allow_location">Allow Location Access</string>
+
+    <string name="allow_storage">Allow Storage</string>
+    <string name="perm_storage_desc">Allow gallery and camera permission to set/update your images!</string>
+
+    <string name="allow_notification">Allow Notifications</string>
+    <string name="perm_notification_desc">Receive important updates from Nirmata.</string>
+
+    <string name="allow">Allow</string>
+    <string name="select_picture">Select Picture</string>
+</resources>

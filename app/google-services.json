@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "484930745329",
+    "firebase_url": "https://flutter-test-bf216-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "flutter-test-bf216",
+    "storage_bucket": "flutter-test-bf216.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484930745329:android:f785f0d4a38ffae6c04a50",
+        "android_client_info": {
+          "package_name": "com.example.demo_socials"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGNLWhz5hKJc2k0730goF5INWLQcDZJyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "484930745329-b7bps4t6j075k913bep94gmodoq7n54j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.demoSocials"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484930745329:android:d3e1e240826c8578c04a50",
+        "android_client_info": {
+          "package_name": "com.outlook.attendance"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGNLWhz5hKJc2k0730goF5INWLQcDZJyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "484930745329-b7bps4t6j075k913bep94gmodoq7n54j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.demoSocials"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484930745329:android:b72bd6cf3100d690c04a50",
+        "android_client_info": {
+          "package_name": "com.rakshit.one"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGNLWhz5hKJc2k0730goF5INWLQcDZJyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484930745329-tjlcf9l38csqld4jnfnk488dp0tvrpe5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "484930745329-b7bps4t6j075k913bep94gmodoq7n54j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.demoSocials"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
