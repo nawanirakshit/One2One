@@ -34,8 +34,10 @@ import com.test.papers.config.IntentKey.FIRESTORE_USERS
 import com.test.papers.config.IntentKey.REALTIME_CHAT
 import com.test.papers.config.MetadataConst
 import com.test.papers.config.RECEIVERDATA
+import com.test.papers.config.ReadStatus
 import com.test.papers.kotlin.KotlinBaseFragment
 import com.test.papers.utils.extension.gone
+import com.test.papers.utils.extension.observeTextChange
 import com.test.papers.utils.extension.showToast
 import com.test.papers.utils.extension.visible
 import de.hdodenhof.circleimageview.CircleImageView
@@ -49,9 +51,7 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
     private val mMessage: AppCompatEditText by lazy { requireView().findViewById(R.id.et_message) }
     private val mNoBill: ConstraintLayout by lazy { requireView().findViewById(R.id.no_list_data) }
     private val mOpponentName: TextView by lazy { requireView().findViewById(R.id.toolbar_title) }
-    private val mStatus: TextView by lazy { requireView().findViewById(R.id.tv_status) }
     private val mUserImage: CircleImageView by lazy { requireView().findViewById(R.id.user_image) }
-    private val mTyping: TextView by lazy { requireView().findViewById(R.id.toolbar_typing) }
 
     private val mRecycler: RecyclerView by lazy { requireView().findViewById(R.id.recycler_single_chat) }
     private lateinit var adapter: ChatListAdapter
@@ -62,13 +62,9 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
 
     private val myChatList: ArrayList<MyChat> = arrayListOf()
 
-    private val opponentName: String by lazy {
-        requireArguments().getString(ConstantsFirestore.NAME).toString()
-    }
     private val opponentId: String by lazy {
         requireArguments().getString(ConstantsFirestore.UID).toString()
     }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -92,21 +88,6 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
                 return@addSnapshotListener
             }
             if (snapshot != null && snapshot.exists()) {
-
-                if (snapshot.data?.get(ConstantsFirestore.NAME) != null) {
-                    val name = snapshot.data?.get(ConstantsFirestore.NAME)?.toString()
-                    mOpponentName.text = name
-                }
-
-                if (snapshot.data?.get(ConstantsFirestore.IS_ONLINE) != null) {
-                    val isOnline = snapshot.data?.get(ConstantsFirestore.IS_ONLINE) as Boolean
-                    if (isOnline) {
-                        mStatus.setBackgroundResource(R.drawable.bg_online);
-                    } else {
-                        mStatus.setBackgroundResource(R.drawable.bg_offline);
-                    }
-                }
-
                 if (snapshot.data?.get(ConstantsFirestore.IMAGE) != null) {
                     val image = snapshot.data?.get(ConstantsFirestore.IMAGE)?.toString()
                     if (image != null) {
@@ -118,7 +99,7 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
     }
 
     private fun initViews() {
-        mOpponentName.text = opponentName
+        mOpponentName.text = requireArguments().getString(ConstantsFirestore.NAME).toString()
 
         requireView().findViewById<AppCompatImageView>(R.id.button_back).setOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
@@ -130,7 +111,6 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             if (message.isBlank()) {
                 showToast("Enter a message")
             } else {
-
                 sendMessage(opponentId, message, CHAT_TYPE.TEXT)
             }
         }
@@ -170,17 +150,6 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
 
         mRecycler.layoutManager = LinearLayoutManager(requireContext())
         mRecycler.adapter = adapter
-
-        mMessage.doOnTextChanged { text, start, before, count ->
-            val channelKey = database.reference.child(REALTIME_CHAT).child(key)
-
-            val typing = count > 0
-
-            val childUpdates = hashMapOf(
-                "/metadata/$type/is_typing" to typing,
-            )
-            channelKey.updateChildren(childUpdates as Map<String, Any>)
-        }
     }
 
     private fun sendMessage(opponentId: String, message: String, type: String) {
@@ -202,6 +171,7 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             ChatConst.SENDER_ID to Config.uid,
             ChatConst.CREATED_AT to time,
             ChatConst.TYPE to type,
+            ChatConst.READ_STATUS to ReadStatus.SENT
         )
 
         val childUpdates = hashMapOf(
@@ -251,7 +221,7 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
         )
 
         val receiverData = hashMapOf(
-            RECEIVERDATA.FULL_NAME to opponentName,
+            RECEIVERDATA.FULL_NAME to requireArguments().getString(ConstantsFirestore.NAME).toString(),
             RECEIVERDATA.USER_ID to opponentId,
         )
 
@@ -332,46 +302,12 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
                     "receiverData"
                 }
 
-                checkTyping()
-
             }.addOnFailureListener {
                 Log.e("firebase", "Error getting data", it)
             }
-
-
     }
 
     var type: String = "senderData"
-
-    private fun checkTyping() {
-        val childEventListener = object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
-            }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
-
-                val isTyping = dataSnapshot.value as Boolean
-                if (isTyping) {
-                    mTyping.visible()
-                } else mTyping.gone()
-
-            }
-
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-            }
-
-            override fun onChildMoved(dataSnapshot: DataSnapshot, previousChildName: String?) {
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-            }
-        }
-
-        val channelKey = database.reference.child(REALTIME_CHAT).child(key)
-
-        channelKey.child("metadata").child(type).addChildEventListener(childEventListener)
-
-    }
 }
 
 data class MyChat(

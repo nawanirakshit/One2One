@@ -22,10 +22,10 @@ class UserListAdapter(val itemClick: (Users) -> Unit, val context: Context) :
 
         mUserName.text = data.name
 
-        if (data.image != null && data.image.isNotEmpty()) {
-            println("DATA IMAGE >>>>> ${data.image}")
-            mUserImage.loadProfileImage(data.image, context = context)
-        }
+//        if (data.image != null && data.image.isNotEmpty()) {
+//            println("DATA IMAGE >>>>> ${data.image}")
+//            mUserImage.loadProfileImage(data.image, context = context)
+//        }
 
         mParent.setOnClickListener {
             itemClick.invoke(data)

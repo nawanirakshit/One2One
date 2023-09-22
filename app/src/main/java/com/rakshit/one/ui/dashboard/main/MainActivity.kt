@@ -67,30 +67,14 @@ class MainActivity : KotlinBaseActivity() {
         getChatData()
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        updateStatus(true)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        updateStatus(false)
-    }
-
-    private fun updateStatus(status: Boolean) {
-        viewModel.updateStatus(status)
-    }
-
     private fun getChatData() {
         val childEventListener = object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("MY CHAT >>", "onChildAdded:" + dataSnapshot.key!!)
-
                 if (dataSnapshot.key!!.contains(Config.uid)) {
 
                     val gson = Gson()
                     val jsonElement = gson.toJsonTree(dataSnapshot.value)
+                    println("JSON >>>> $jsonElement")
                     val metadata: ResponseAvailableChat =
                         gson.fromJson(jsonElement, ResponseAvailableChat::class.java)
 
@@ -99,15 +83,12 @@ class MainActivity : KotlinBaseActivity() {
                     metadata.metadata.key = dataSnapshot.key!!
 
                     adapter.addtoList(metadata)
-
                     mNoBill.gone()
                 }
-
+                hideLoading()
             }
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("MY CHAT >>", "onChildChanged: ${dataSnapshot.key}")
-
                 val gson = Gson()
                 val jsonElement = gson.toJsonTree(dataSnapshot.value)
                 val metadata: ResponseAvailableChat =
@@ -127,8 +108,6 @@ class MainActivity : KotlinBaseActivity() {
             }
 
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                Log.d("MY CHAT >>", "onChildRemoved:" + dataSnapshot.key!!)
-
                 adapter.getOriginalList().forEachIndexed { index, element ->
                     if (element.metadata.key == dataSnapshot.key) {
                         adapter.removeItem(index)
@@ -137,16 +116,16 @@ class MainActivity : KotlinBaseActivity() {
             }
 
             override fun onChildMoved(dataSnapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("MY CHAT >>", "onChildMoved:" + dataSnapshot.key!!)
 
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("MY CHAT >>", "postComments:onCancelled", databaseError.toException())
+                hideLoading()
                 Toast.makeText(context, "Failed to load chat.", Toast.LENGTH_SHORT).show()
             }
         }
 
+//        showLoading()
         val channelKey = database.reference.child(IntentKey.REALTIME_CHAT)
         channelKey.addChildEventListener(childEventListener)
     }
@@ -169,6 +148,4 @@ class MainActivity : KotlinBaseActivity() {
     private fun observeViews() {
 
     }
-
-
 }

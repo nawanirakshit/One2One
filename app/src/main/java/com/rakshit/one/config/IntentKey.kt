@@ -30,7 +30,7 @@ object IntentKey {
     const val SELECT_SINGLE = "SELECT_SINGLE"
 
     const val REALTIME_CHAT = "chats"
-    const val FIRESTORE_USERS = "users"
+    const val FIRESTORE_USERS = "chat_users"
 
     const val DATA = "Data"
 
@@ -62,6 +62,14 @@ object ChatConst {
     const val RECEIVER_ID = "receiverId"
     const val SENDER_ID = "senderId"
     const val TYPE = "type" //text, attachment
+    const val READ_STATUS = "read_status" //0 -> sent, 1-> received, 2-> read
+
+}
+
+object ReadStatus {
+    const val SENT = "0"
+    const val RECEIVED = "1"
+    const val READ = "2"
 }
 
 object MetadataConst {

@@ -33,33 +33,11 @@ class MainChatAdapter(
         val mUserImage: CircleImageView = iView.findViewById(R.id.user_image)
         val unreadCount: TextView = iView.findViewById(R.id.tv_unread_count)
         val lastMessage: TextView = iView.findViewById(R.id.tv_last_message)
-        val mStatus: TextView = iView.findViewById(R.id.tv_status)
 
         val userData = if (Config.uid == data.receiverData.userId) {
             data.senderData
         } else {
             data.receiverData
-        }
-
-        val docRef =
-            Firebase.firestore.collection(IntentKey.FIRESTORE_USERS).document(userData.userId)
-        docRef.addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                return@addSnapshotListener
-            }
-
-            if (snapshot != null && snapshot.exists()) {
-                if (snapshot.data?.get(ConstantsFirestore.IS_ONLINE) != null) {
-                    val isOnline = snapshot.data?.get(ConstantsFirestore.IS_ONLINE) as Boolean
-                    if (isOnline) {
-                        mStatus.setBackgroundResource(R.drawable.bg_online);
-                    } else {
-                        mStatus.setBackgroundResource(R.drawable.bg_offline);
-                    }
-                } else {
-                    println("IS ONLINE IS NULL >>>>>> ")
-                }
-            }
         }
 
         if (data.unread_me > 0) {

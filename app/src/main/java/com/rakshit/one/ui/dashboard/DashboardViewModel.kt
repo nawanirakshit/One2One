@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.test.papers.config.ConstantsFirestore
+import com.test.papers.config.IntentKey
 import com.test.papers.kotlin.viewmodel.KotlinBaseViewModel
 import com.test.papers.kotlin.viewmodel.VolatileLiveData
 
@@ -14,7 +15,7 @@ class DashboardViewModel : KotlinBaseViewModel() {
 
     fun getAllUsers() {
 
-        Firebase.firestore.collection("users")
+        Firebase.firestore.collection(IntentKey.FIRESTORE_USERS)
             .get()
             .addOnSuccessListener { result ->
                 val listUsers = arrayListOf<Users>()
@@ -38,7 +39,6 @@ class DashboardViewModel : KotlinBaseViewModel() {
                         )
                         listUsers.add(user)
                     }
-
                 }
                 successUserListing.postValue(listUsers)
             }
@@ -46,15 +46,6 @@ class DashboardViewModel : KotlinBaseViewModel() {
                 Log.w("ALL USER DATA >>", "Error getting documents.", exception)
             }
     }
-
-    fun updateStatus(status: Boolean) {
-
-        val washingtonRef = Firebase.firestore.collection("users").document(Config.uid)
-        washingtonRef.update("is_online", status)
-            .addOnSuccessListener { Log.d("is_online", "DocumentSnapshot successfully updated!") }
-            .addOnFailureListener { e -> Log.w("is_online", "Error updating document", e) }
-    }
-
 }
 
 data class Users(

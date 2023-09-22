@@ -37,14 +37,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tv_status"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:background="@drawable/bg_offline"
-            app:layout_constraintBottom_toBottomOf="@+id/user_image"
-            app:layout_constraintEnd_toEndOf="@+id/user_image" />
-
-        <TextView
             android:id="@+id/toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,24 +46,9 @@
             android:text="Rakshit Nawani"
             android:textColor="@color/white"
             android:textSize="22sp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/user_image"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/toolbar_typing"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="-5dp"
-            android:gravity="center"
-            android:text="Typing"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="italic"
-            android:visibility="gone"
-            app:layout_constraintStart_toEndOf="@+id/user_image"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar_title" />
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
