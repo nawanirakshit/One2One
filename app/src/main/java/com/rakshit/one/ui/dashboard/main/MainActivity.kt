@@ -3,7 +3,6 @@ package com.rakshit.one.ui.dashboard.main
 import android.content.Context
 import android.os.Bundle
 import android.sleek.construction.config.Config
-import android.util.Log
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,9 +12,10 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.rakshit.one.R
-import com.rakshit.one.model.chatdata.Metadata
 import com.rakshit.one.model.chatdata.ReceiverData
 import com.rakshit.one.model.chatdata.ResponseAvailableChat
 import com.rakshit.one.ui.dashboard.DashboardViewModel
@@ -26,7 +26,6 @@ import com.test.papers.config.IntentKey
 import com.test.papers.kotlin.KotlinBaseActivity
 import com.test.papers.kotlin.replaceFragment
 import com.test.papers.utils.extension.gone
-import com.test.papers.utils.extension.visible
 import org.koin.android.ext.android.inject
 
 class MainActivity : KotlinBaseActivity() {
@@ -65,6 +64,24 @@ class MainActivity : KotlinBaseActivity() {
         observeViews()
 
         getChatData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setOnlineStatus(true)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        setOnlineStatus(false)
+    }
+
+    private fun setOnlineStatus(isOnline: Boolean) {
+        val map: Map<String, Any> = hashMapOf(
+            ConstantsFirestore.IS_ONLINE to isOnline,
+        )
+
+        Firebase.firestore.collection(IntentKey.FIRESTORE_USERS).document(Config.uid).update(map)
     }
 
     private fun getChatData() {

@@ -19,6 +19,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
@@ -53,10 +54,14 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
     private val mOpponentName: TextView by lazy { requireView().findViewById(R.id.toolbar_title) }
     private val mUserImage: CircleImageView by lazy { requireView().findViewById(R.id.user_image) }
 
+    private val mOpponentOnline: TextView by lazy { requireView().findViewById(R.id.toolbar_online) }
+    private val mOpponentTyping: TextView by lazy { requireView().findViewById(R.id.tv_typing) }
+
     private val mRecycler: RecyclerView by lazy { requireView().findViewById(R.id.recycler_single_chat) }
     private lateinit var adapter: ChatListAdapter
 
     private val database by lazy { FirebaseDatabase.getInstance() }
+    private val myRef by lazy { database.reference.child(REALTIME_CHAT) }
 
     private lateinit var key: String
 
@@ -94,6 +99,17 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
                         mUserImage.loadProfileImage(image, context = requireContext())
                     }
                 }
+
+                if (snapshot.data?.get(ConstantsFirestore.IS_ONLINE) != null) {
+                    val isOnline: Boolean =
+                        snapshot.data?.get(ConstantsFirestore.IS_ONLINE) as Boolean
+
+                    if (isOnline) {
+                        mOpponentOnline.text = "Online"
+                    } else {
+                        mOpponentOnline.text = "Offline"
+                    }
+                }
             }
         }
     }
@@ -111,6 +127,8 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             if (message.isBlank()) {
                 showToast("Enter a message")
             } else {
+                println("opponentId >>>> $opponentId")
+                println("message >>>> $message")
                 sendMessage(opponentId, message, CHAT_TYPE.TEXT)
             }
         }
@@ -150,11 +168,18 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
 
         mRecycler.layoutManager = LinearLayoutManager(requireContext())
         mRecycler.adapter = adapter
+
+        mMessage.observeTextChange {
+            val ourChat = myRef.child(key)
+            val childUpdates: Map<String, Any> =
+                if (it.isNotEmpty()) hashMapOf("/metadata/typing_${Config.uid}" to true)
+                else hashMapOf("/metadata/typing_${Config.uid}" to false)
+
+            ourChat.updateChildren(childUpdates)
+        }
     }
 
     private fun sendMessage(opponentId: String, message: String, type: String) {
-        val myRef = database.reference.child(REALTIME_CHAT)
-
         val ourChat = myRef.child(key)
 
         val time: MutableMap<String, String> = ServerValue.TIMESTAMP
@@ -186,14 +211,12 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
         mMessage.text?.clear()
     }
 
-
     private fun findKey() {
 
         database.reference.child(REALTIME_CHAT).get().addOnSuccessListener {
             for (data in it.children) {
                 if (data.key!!.contains(Config.uid) && data.key!!.contains(opponentId)) {
                     key = data.key!!
-                    println("KEY >>>> $key")
                     return@addOnSuccessListener
                 }
             }
@@ -221,7 +244,8 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
         )
 
         val receiverData = hashMapOf(
-            RECEIVERDATA.FULL_NAME to requireArguments().getString(ConstantsFirestore.NAME).toString(),
+            RECEIVERDATA.FULL_NAME to requireArguments().getString(ConstantsFirestore.NAME)
+                .toString(),
             RECEIVERDATA.USER_ID to opponentId,
         )
 
@@ -230,6 +254,8 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             "/metadata/unread_${Config.uid}" to 0,
             "/metadata/senderData" to senderData,
             "/metadata/receiverData" to receiverData,
+            "metadata/typing_${opponentId}" to false,
+            "metadata/typing_${Config.uid}" to false
         )
 
         ourChat.updateChildren(childUpdates)
@@ -237,11 +263,28 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
         findChats(key)
     }
 
-    private fun findChats(key: String) {
+    private fun isTyping() {
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val isUserTyping: Boolean = dataSnapshot.value as Boolean
+                    if (isUserTyping) mOpponentTyping.visible()
+                    else mOpponentTyping.gone()
+                }
+            }
 
+            override fun onCancelled(databaseError: DatabaseError) {
+
+            }
+        }
+        database.reference.child(REALTIME_CHAT).child(key).child("metadata")
+            .child("typing_${opponentId}").addValueEventListener(postListener)
+
+    }
+
+    private fun findChats(key: String) {
         val childEventListener = object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("MY CHAT >>", "onChildAdded:" + dataSnapshot.key!!)
 
                 val gson = Gson()
                 val jsonElement = gson.toJsonTree(dataSnapshot.value)
@@ -305,6 +348,8 @@ class MyChatFragment : KotlinBaseFragment(R.layout.fragment_my_chat) {
             }.addOnFailureListener {
                 Log.e("firebase", "Error getting data", it)
             }
+
+        isTyping()
     }
 
     var type: String = "senderData"
